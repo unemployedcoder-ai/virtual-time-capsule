@@ -7,38 +7,61 @@
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <div class="container">
+  <div class="landing-container">
     <h1>Virtual Time Capsule</h1>
-    <p>Create a message to open in the future!</p>
-    <div id="currentTime" class="current-time"></div>
-    <div class="theme-toggle">
-      <label for="themeSwitch">Dark Theme</label>
-      <input type="checkbox" id="themeSwitch">
-    </div>
-
-    <!-- Form to create a capsule -->
-    <form id="capsuleForm" enctype="multipart/form-data">
-      <label for="message">Your Message:</label>
-      <textarea id="message" rows="4" required></textarea>
-      <label for="unlockDateTime">Unlock Date and Time:</label>
-      <input type="datetime-local" id="unlockDateTime" required>
-      <label for="image">Upload Image (JPG/PNG):</label>
-      <input type="file" id="image" name="image" accept="image/jpeg,image/png">
-      <label for="video">Upload Video (MP4):</label>
-      <input type="file" id="video" name="video" accept="video/mp4">
-      <label for="pdf">Upload PDF:</label>
-      <input type="file" id="pdf" name="pdf" accept="application/pdf">
-      <button type="submit">Lock Capsule</button>
-    </form>
-
-    <!-- Section to view a capsule -->
-    <div class="view-capsule">
-      <h2>View Capsule</h2>
-      <input type="text" id="capsuleId" placeholder="Enter Capsule ID">
-      <button onclick="viewCapsule()">Open Capsule</button>
-      <div id="capsuleResult"></div>
+    <div class="button-group">
+      <button class="interactive-button" onclick="showSection('create')">Create Capsule</button>
+      <button class="interactive-button" onclick="showSection('view')">View Capsule</button>
     </div>
   </div>
+
+  <div id="create-section" class="section hidden">
+    <div class="container">
+      <h2>Create a Capsule</h2>
+      <div id="currentTime" class="current-time"></div>
+      <div class="theme-toggle">
+        <label for="themeSwitch">Dark Theme</label>
+        <input type="checkbox" id="themeSwitch">
+      </div>
+      <form id="capsuleForm" enctype="multipart/form-data">
+        <label for="message">Your Message:</label>
+        <textarea id="message" rows="4" required></textarea>
+        <label for="unlockDateTime">Unlock Date and Time:</label>
+        <input type="datetime-local" id="unlockDateTime" required>
+        <label for="password">Capsule Password:</label>
+        <input type="password" id="password" required>
+        <label for="image">Upload Image (JPG/PNG):</label>
+        <input type="file" id="image" name="image" accept="image/jpeg,image/png">
+        <label for="video">Upload Video (MP4):</label>
+        <input type="file" id="video" name="video" accept="video/mp4">
+        <label for="pdf">Upload PDF:</label>
+        <input type="file" id="pdf" name="pdf" accept="application/pdf">
+        <button type="submit">Lock Capsule</button>
+      </form>
+      <button class="back-button" onclick="backToLanding()">Back</button>
+    </div>
+  </div>
+
+  <div id="view-section" class="section hidden">
+    <div class="container">
+      <h2>View Capsule</h2>
+      <div id="currentTimeView" class="current-time"></div>
+      <div class="theme-toggle">
+        <label for="themeSwitchView">Dark Theme</label>
+        <input type="checkbox" id="themeSwitchView">
+      </div>
+      <div class="view-capsule">
+        <label for="capsuleId">Capsule ID:</label>
+        <input type="text" id="capsuleId" placeholder="Enter Capsule ID">
+        <label for="viewPassword">Password:</label>
+        <input type="password" id="viewPassword" placeholder="Enter Password">
+        <button onclick="viewCapsule()">Open Capsule</button>
+        <div id="capsuleResult"></div>
+      </div>
+      <button class="back-button" onclick="backToLanding()">Back</button>
+    </div>
+  </div>
+
   <script src="/client.js"></script>
 </body>
 </html>

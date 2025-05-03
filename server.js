@@ -2,6 +2,7 @@ const express = require('express');
 const fs = require('fs').promises;
 const path = require('path');
 const multer = require('multer');
+const bcrypt = require('bcrypt');
 const app = express();
 
 // Middleware
@@ -11,7 +12,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Setup storage for uploaded files
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'public/uploads/');
+    cb(null, '/tmp/');
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -20,7 +21,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Load capsules
-const capsulesFile = path.join(__dirname, 'capsules.json');
+const capsulesFile = path.join('/tmp', 'capsules.json');
 async function loadCapsules() {
   try {
     const data = await fs.readFile(capsulesFile, 'utf8');
@@ -43,7 +44,11 @@ app.post('/api/capsules', upload.fields([
 ]), async (req, res) => {
   try {
     const capsules = await loadCapsules();
-    const { message, unlockDateTime } = req.body;
+    const { message, unlockDateTime, password } = req.body;
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required' });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
     const files = req.files;
     const id = capsules.length > 0 ? Math.max(...capsules.map(c => c.id)) + 1 : 1;
 
@@ -51,12 +56,13 @@ app.post('/api/capsules', upload.fields([
       id,
       message,
       unlockDateTime,
+      password: hashedPassword,
       files: {}
     };
 
-    if (files.image) capsule.files.image = `/uploads/${files.image[0].filename}`;
-    if (files.video) capsule.files.video = `/uploads/${files.video[0].filename}`;
-    if (files.pdf) capsule.files.pdf = `/uploads/${files.pdf[0].filename}`;
+    if (files.image) capsule.files.image = `/tmp/${files.image[0].filename}`;
+    if (files.video) capsule.files.video = `/tmp/${files.video[0].filename}`;
+    if (files.pdf) capsule.files.pdf = `/tmp/${files.pdf[0].filename}`;
 
     capsules.push(capsule);
     await saveCapsules(capsules);
@@ -68,12 +74,20 @@ app.post('/api/capsules', upload.fields([
 });
 
 // Get a capsule by ID
-app.get('/api/capsules/:id', async (req, res) => {
+app.post('/api/capsules/:id', async (req, res) => {
   try {
     const capsules = await loadCapsules();
     const capsule = capsules.find(c => c.id === parseInt(req.params.id));
     if (!capsule) {
       return res.status(404).json({ error: 'Capsule not found' });
+    }
+    const { password } = req.body;
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required' });
+    }
+    const isPasswordValid = await bcrypt.compare(password, capsule.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid password' });
     }
     res.json(capsule);
   } catch (error) {
@@ -87,3 +101,5 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+module.exports = app;

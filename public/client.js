@@ -1,7 +1,17 @@
+// Section toggle
+function showSection(section) {
+  document.querySelector('.landing-container').style.display = 'none';
+  document.getElementById(`${section}-section`).classList.add('active');
+}
+
+function backToLanding() {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelector('.landing-container').style.display = 'flex';
+}
+
 // Theme toggle
-const themeSwitch = document.getElementById('themeSwitch');
-function applyTheme() {
-  if (themeSwitch.checked) {
+function applyTheme(checkbox) {
+  if (checkbox.checked) {
     document.body.classList.add('dark-theme');
     localStorage.setItem('theme', 'dark');
   } else {
@@ -9,11 +19,17 @@ function applyTheme() {
     localStorage.setItem('theme', 'light');
   }
 }
-themeSwitch.addEventListener('change', applyTheme);
+
+const themeSwitch = document.getElementById('themeSwitch');
+const themeSwitchView = document.getElementById('themeSwitchView');
+themeSwitch.addEventListener('change', () => applyTheme(themeSwitch));
+themeSwitchView.addEventListener('change', () => applyTheme(themeSwitchView));
+
 // Load saved theme
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'dark') {
   themeSwitch.checked = true;
+  themeSwitchView.checked = true;
   document.body.classList.add('dark-theme');
 }
 
@@ -24,12 +40,14 @@ function updateCurrentTime() {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    hour: 'vien2-digit',
+    hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
     hour12: true
   };
-  document.getElementById('currentTime').innerText = `Current Time: ${now.toLocaleString('en-US', options)}`;
+  const timeString = `Current Time: ${now.toLocaleString('en-US', options)}`;
+  document.getElementById('currentTime').innerText = timeString;
+  document.getElementById('currentTimeView').innerText = timeString;
 }
 updateCurrentTime();
 setInterval(updateCurrentTime, 1000);
@@ -39,6 +57,7 @@ document.getElementById('capsuleForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const message = document.getElementById('message').value;
   const unlockDateTime = document.getElementById('unlockDateTime').value;
+  const password = document.getElementById('password').value;
   const image = document.getElementById('image').files[0];
   const video = document.getElementById('video').files[0];
   const pdf = document.getElementById('pdf').files[0];
@@ -46,6 +65,7 @@ document.getElementById('capsuleForm').addEventListener('submit', async (e) => {
   const formData = new FormData();
   formData.append('message', message);
   formData.append('unlockDateTime', unlockDateTime);
+  formData.append('password', password);
   if (image) formData.append('image', image);
   if (video) formData.append('video', video);
   if (pdf) formData.append('pdf', pdf);
@@ -59,8 +79,9 @@ document.getElementById('capsuleForm').addEventListener('submit', async (e) => {
     if (result.error) {
       alert(result.error);
     } else {
-      alert(`Capsule created! Your Capsule ID is: ${result.id}. Save this ID to view your capsule later.`);
+      alert(`Capsule created! Your Capsule ID is: ${result.id}. Save this ID and password to view your capsule later.`);
       document.getElementById('capsuleForm').reset();
+      backToLanding();
     }
   } catch (error) {
     alert('Error creating capsule: ' + error.message);
@@ -70,14 +91,19 @@ document.getElementById('capsuleForm').addEventListener('submit', async (e) => {
 // View capsule
 async function viewCapsule() {
   const capsuleId = document.getElementById('capsuleId').value;
+  const password = document.getElementById('viewPassword').value;
   const resultDiv = document.getElementById('capsuleResult');
-  if (!capsuleId) {
-    resultDiv.innerText = 'Please enter a Capsule ID.';
+  if (!capsuleId || !password) {
+    resultDiv.innerText = 'Please enter both Capsule ID and Password.';
     return;
   }
 
   try {
-    const response = await fetch(`/api/capsules/${capsuleId}`);
+    const response = await fetch(`/api/capsules/${capsuleId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password })
+    });
     const result = await response.json();
     if (result.error) {
       resultDiv.innerText = result.error;
