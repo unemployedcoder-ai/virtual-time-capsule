@@ -1,0 +1,16 @@
+{
+  "name": "virtual-time-capsule",
+  "version": "1.0.0",
+  "description": "A virtual time capsule creator",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "multer": "^1.4.5-lts.1"
+  }
+}

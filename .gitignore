@@ -1,0 +1,4 @@
+node_modules/
+capsules.json
+public/uploads/
+package-lock.json
